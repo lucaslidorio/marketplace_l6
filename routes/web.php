@@ -12,5 +12,12 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+
+    $helloWorld = 'Hello Word';
+    
+
+
+    return view('welcome', compact('helloWorld'));
+
+    
 });

@@ -12,7 +12,7 @@ class UserTableSeeder extends Seeder
     public function run()
     {
         // Cria usuário de teste
-        \DB::table('users')->insert(
+    /*    \DB::table('users')->insert(
             [
                 'name' => 'Administrator',
                 'email' => 'lucaslidorio@hotmail.com',
@@ -20,6 +20,7 @@ class UserTableSeeder extends Seeder
                 'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
                 'remember_token' => 'passwords',
             ]
-        );
+        );*/
+        factory(\App\User::class, 40)->create();
     }
 }

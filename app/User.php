@@ -8,6 +8,13 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+/*
+ 1:1 - um para um (usuário e loja) hasOne e belongsTO
+ 1:N - um para muitos (loja e produtos) hasMany belongsTO
+ N:N - muitos para muitos (Produtos de categorias) belongsToMany
+
+*/
+
     use Notifiable;
 
     /**
@@ -25,7 +32,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token'
     ];
 
     /**
@@ -35,5 +42,12 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        
     ];
+
+    public function store(){
+        //um usuário possui uma loja
+        return $this->hasOne(Store::class);
+    }
+
 }

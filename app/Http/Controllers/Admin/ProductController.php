@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Product;
+use App\Http\Requests\ProductRequest;
 
 
 class ProductController extends Controller
@@ -52,16 +53,17 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
         //Processamento da criação
         $data = $request->all();
 
-        $store =\App\Store::find(['store']);
+        $store =auth()->user()->store; 
+               
         $store->products()->create($data);
 
-        //Menssagem de sucesso
-        flash('Produto criado com sucesso!')->success();
+         //Menssagem de sucesso
+         flash('Produto criado com sucesso!')->success();
 
         return redirect()->route('admin.products.index');
 
@@ -83,24 +85,24 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param  int  $product
      * @return \Illuminate\Http\Response
      */
     public function edit($product)
     {
         //Formulário de edição
-        $product = $this->product->findOrFail($product);
-        return view('admin.products.edit', compact('products'));
+        $product = $this->product->find($product);
+        return view('admin.products.edit', compact('product'));
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  int  $product
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $product)
+    public function update(ProductRequest $request, $product)
     {
         //Processamento da atualização
         $data=$request->all();

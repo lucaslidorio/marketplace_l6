@@ -82,6 +82,13 @@
                             <a href="{{ route('register') }}">Register</a>
                         @endif
                     @endauth
+
+                    @guest
+                        <h1> Usuário não logado</h1>
+                        
+                        @else
+                            <h1>Usuário logado</h1>
+                    @endguest
                 </div>
             @endif
 

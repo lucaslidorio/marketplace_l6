@@ -12,22 +12,46 @@
 
     <div class="form-group">
         <label for="">Nome Produto</label>
-        <input type="text"  class="form-control" name="name" value="{{$product->name}}">
+        <input type="text" name="name"  class="form-control @error('name') is-invalid @enderror" value="{{$product->name}}">
+
+        @error('name')
+            <div class="invalid-feedback">
+                {{$message}}
+            </div>
+        @enderror
     </div>
 
     <div class="form-group">
         <label for="">Descrição</label>
-        <input type="text" class="form-control" name="description" value="{{$product->description}}">
+        <input type="text" name="description" class=" form-control @error('description') is-invalid @enderror" value="{{$product->description}}">
+
+        @error('description')
+            <div class="invalid-feedback">
+                {{$message}}
+            </div>
+            @enderror
     </div>
 
     <div class="form-group">
         <label for="">Conteúdo</label>
-        <textarea name="body" id="" cols="30" rows="10" class="form-control" value="{{$product->body}}"></textarea>
+        <textarea name="body" id="" cols="30" rows="10" class="form-control @error('body') is-invalid @enderror" >{{$product->body}}</textarea>
+
+        @error('body')
+            <div class="invalid-feedback">
+                {{$message}}
+            </div>
+        @enderror
     </div>
 
     <div class="form-group">
         <label for="">Preço</label>
-        <input type="text" class="form-control" name="prince" value="{{$product->prince}}">
+        <input type="text" name="prince" class="form-control @error('prince') is-invalid @enderror" value="{{$product->price}}">
+        
+        @error('prince')
+            <div class="invalid-feedback">
+                {{$message}}
+            </div>
+        @enderror
     </div>
 
     <div class="form-group">

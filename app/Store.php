@@ -3,7 +3,8 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Prophecy\Doubler\Generator\Node\ReturnTypeNode;
+use App\User;
 class Store extends Model
 {
     //Laravel sempre procura o nome da classe no plural no BD, caso queria apontar
@@ -16,7 +17,7 @@ class Store extends Model
     public function user()
     {
         //uma loja pertece a um usuário
-        $this->belongsTo(User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function products()
@@ -25,4 +26,3 @@ class Store extends Model
     }
 }
 
-//

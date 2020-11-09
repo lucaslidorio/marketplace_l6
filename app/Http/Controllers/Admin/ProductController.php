@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Product;
 use App\Http\Requests\ProductRequest;
-
+use App\ProductPhoto;
+use App\Traits\UploadTrait;
 
 class ProductController extends Controller
 {
+    use UploadTrait;
     private $product;
 
     public function __construct(Product $product)
@@ -27,11 +29,11 @@ class ProductController extends Controller
     public function index()
     {
         //lista dados
-        $products = $this->product->paginate(10);
+        $userStore = auth()->user()->store;
+
+        $products = $userStore->products()->paginate(10);
 
         return view('admin.products.index', compact('products'));
-
-
     }
 
     /**
@@ -42,9 +44,9 @@ class ProductController extends Controller
     public function create()
     {
         //Formlário de criação
-        $stores = \App\Store::all(['id', 'name']);
+        $categories = \App\Category::all(['id', 'name']);
 
-        return view('admin.products.create', compact('stores'));
+        return view('admin.products.create', compact('categories'));
     }
 
     /**
@@ -54,19 +56,26 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(ProductRequest $request)
-    {
-        //Processamento da criação
+    {      
+        
         $data = $request->all();
 
-        $store =auth()->user()->store; 
-               
-        $store->products()->create($data);
+        $store = auth()->user()->store;
+        $product = $store->products()->create($data);
 
-         //Menssagem de sucesso
-         flash('Produto criado com sucesso!')->success();
 
+        $product->categories()->sync($data['categories']);
+        
+        if($request->hasFile('photos')){
+            $images = $this->imageUpload($request->file('photos'), 'image' );
+            //inserção na base =  referencias
+            $product->photos()->createMany($images) ;
+        }
+
+
+        //Menssagem de sucesso
+        flash('Produto criado com sucesso!')->success();
         return redirect()->route('admin.products.index');
-
     }
 
     /**
@@ -79,7 +88,7 @@ class ProductController extends Controller
     {
         //Visualização rápida de dados
 
-        
+
     }
 
     /**
@@ -91,8 +100,9 @@ class ProductController extends Controller
     public function edit($product)
     {
         //Formulário de edição
-        $product = $this->product->find($product);
-        return view('admin.products.edit', compact('product'));
+        $product = $this->product->findOrFail($product);
+        $categories = \App\Category::all(['id', 'name']);
+        return view('admin.products.edit', compact('product', 'categories'));
     }
 
     /**
@@ -105,10 +115,17 @@ class ProductController extends Controller
     public function update(ProductRequest $request, $product)
     {
         //Processamento da atualização
-        $data=$request->all();
+        $data = $request->all();
 
         $product = $this->product->find($product);
         $product->update($data);
+        $product->categories()->sync($data['categories']);
+
+        if($request->hasFile('photos')){
+            $images = $this->imageUpload($request->file('photos'), 'image' );
+            //inserção na base =  referencias
+            $product->photos()->createMany($images) ;
+        }
 
         flash('Produto alterado com sucesso!')->success();
         return redirect()->route('admin.products.index');
@@ -122,11 +139,13 @@ class ProductController extends Controller
      */
     public function destroy($product)
     {
-        
+
         $product = $this->product->find($product);
         $product->delete();
 
         flash('Produto removido com sucesso!')->success();
         return redirect()->route('admin.products.index');
     }
+
+    
 }

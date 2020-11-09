@@ -11,7 +11,7 @@ class Store extends Model
     //diretamente para a tabela, use a linha abaixo;
     //protected $table = "lojas";
 
-    protected $fillable = ['name', 'description', 'phone', 'mobile_phone', 'slug'];
+    protected $fillable = ['name', 'description', 'phone', 'mobile_phone', 'slug', 'logo'];
 
 
     public function user()

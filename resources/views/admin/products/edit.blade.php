@@ -6,7 +6,7 @@
 
 <h1>Atualizar Produto</h1>
 
-<form action="{{route('admin.products.update', ['product'=>$product->id])}}" method="post">
+<form action="{{route('admin.products.update', ['product'=>$product->id])}}" method="post" enctype="multipart/form-data">
 @csrf
 @method("PUT")
 
@@ -45,7 +45,7 @@
 
     <div class="form-group">
         <label for="">Preço</label>
-        <input type="text" name="prince" class="form-control @error('prince') is-invalid @enderror" value="{{$product->price}}">
+        <input type="text" name="prince" class="form-control @error('prince') is-invalid @enderror" value="{{$product->prince}}">
         
         @error('prince')
             <div class="invalid-feedback">
@@ -53,6 +53,31 @@
             </div>
         @enderror
     </div>
+   
+    <div class="form-group">
+        <label for="">Categorias</label>
+        <select name="categories[]" id="" class="form-control" multiple>
+            @foreach ($categories as $category)
+        <option value="{{$category->id}}"
+            @if ( $product->categories->contains($category)) selected @endif
+                
+            
+            >{{$category->name}}</option>
+                
+            @endforeach
+        </select>
+
+        <div class="form-group">
+            <label> Fotos do Produto</label>
+            <input type="file" name="photos[]" class="form-control @error('photos') is-invalid @enderror" multiple>
+
+            @error('photos')
+                <div class="invalid-feedback">
+                    {{message}}
+                </div>    
+            @enderror
+        </div>
+
 
     <div class="form-group">
         <label for="">Slug</label>
@@ -61,8 +86,26 @@
 
     
     <div>
-        <button type="submit" class="btn btn-lg btn-success ">Cadatrar Produto</button>
+        <button type="submit" class="btn btn-lg btn-success ">Atualizar Produto</button>
     </div>
 </form>
+<hr>
+<div class="row">
+    @foreach ($product->photos as $photo)
+        <div class="col-4 text-center ">
+        <img src="{{asset('storage/'.$photo->image)}}" alt="" class="img-fluid">
+
+        <form action="{{route('admin.photo.remove')}}" method="post">   
+                
+            @csrf
+            <input type="hidden" name="photoName" value="{{$photo->image}}">
+            
+
+            <button type="submit" class="bt btn-lg btn-danger">Remover</button>
+        </form>
+        </div>
+    @endforeach
+
+</div>
     
 @endsection

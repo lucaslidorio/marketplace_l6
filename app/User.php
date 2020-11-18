@@ -50,5 +50,9 @@ class User extends Authenticatable
         //um usuário possui uma loja
         return $this->hasOne(Store::class);
     }
+    public function orders()
+    {
+        return $this->hasMany(UserOrder::class);
+    }
 
 }

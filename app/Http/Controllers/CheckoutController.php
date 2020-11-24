@@ -60,6 +60,10 @@ class CheckoutController extends Controller
 
         $userOrder->stores()->sync($stores);
 
+        //Notificar loja de novo pedido
+
+        $store = (new Store())->notifyStoreOwners($stores);
+
         session()->forget('cart');
         session()->forget('pagseguro_session_code');
 

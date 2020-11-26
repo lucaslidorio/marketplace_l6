@@ -3,31 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Payment\PagSeguro\CreditCard;
+use App\Payment\PagSeguro\Notification;
+use App\UserOrder;
 use Illuminate\Http\Request;
+use PhpParser\Node\Stmt\TryCatch;
 use Prophecy\Doubler\Generator\Node\ReturnTypeNode;
 
 class CheckoutController extends Controller
 {
     public function index()
     {
-       
+
         if (!auth()->check()) {
             return redirect()->route('login');
         }
-        
-        if(!session()->has('cart')) return redirect()->route('home');
+
+        if (!session()->has('cart')) return redirect()->route('home');
 
         $this->makePagSeguroSession();
 
-       
 
-        $cartItems = array_map(function($line){
-            return $line['amount']* $line['prince'];
 
+        $cartItems = array_map(function ($line) {
+            return $line['amount'] * $line['prince'];
         }, session()->get('cart'));
 
         $cartItems = array_sum($cartItems);
-       
+
 
         // session()->forget('pagseguro_session_code');
 
@@ -36,61 +38,85 @@ class CheckoutController extends Controller
 
     public function proccess(Request $request)
     {
-        try{
-            
-        $dataPost = $request->all();
-        $user=auth()->user();
-        $cartItems = session()->get('cart');
-        $stores = array_unique(array_column($cartItems, 'store_id'));
-       
-        $reference = 'XPTO';
-        $creditCarPayment = new CreditCard($cartItems, $user, $dataPost, $reference);
+        try {
 
-        $result = $creditCarPayment->doPayment();
+            $dataPost = $request->all();
+            $user = auth()->user();
+            $cartItems = session()->get('cart');
+            $stores = array_unique(array_column($cartItems, 'store_id'));
 
-        $userOrder = [
-            'reference' =>$reference,
-            'pagseguro_code' => $result->getCode(),
-            'paseguro_status' => $result->getStatus(),    
-            'items' =>serialize($cartItems),
-            'store_id' => 42,
-        ];
+            $reference = Uuid::uuid4();
+            $creditCarPayment = new CreditCard($cartItems, $user, $dataPost, $reference);
 
-        $userOrder = $user->orders()->create($userOrder);
+            $result = $creditCarPayment->doPayment();
 
-        $userOrder->stores()->sync($stores);
+            $userOrder = [
+                'reference' => $reference,
+                'pagseguro_code' => $result->getCode(),
+                'paseguro_status' => $result->getStatus(),
+                'items' => serialize($cartItems),
 
-        //Notificar loja de novo pedido
+            ];
 
-        $store = (new Store())->notifyStoreOwners($stores);
+            $userOrder = $user->orders()->create($userOrder);
 
-        session()->forget('cart');
-        session()->forget('pagseguro_session_code');
+            $userOrder->stores()->sync($stores);
 
-        return response()->json([
-            'data'=>[
-                'status'=> true,
-                'message'=> 'Pedido Criado com sucesso',
-                'order' =>$reference
-            ]
-        ]);
+            //Notificar loja de novo pedido
 
-        }catch (\Exception $e){
-            $message = env('APP_DEBUG') ? $e->getMessage() : 'Erro ao processar o pedido'; 
+            $store = (new Store())->notifyStoreOwners($stores);
+
+            session()->forget('cart');
+            session()->forget('pagseguro_session_code');
+
             return response()->json([
-                'data'=>[
-                    'status'=> false,
-                    'message'=> $message
+                'data' => [
+                    'status' => true,
+                    'message' => 'Pedido Criado com sucesso',
+                    'order' => $reference
                 ]
-                ], 401);
-    
+            ]);
+        } catch (\Exception $e) {
+            $message = env('APP_DEBUG') ? $e->getMessage() : 'Erro ao processar o pedido';
+            return response()->json([
+                'data' => [
+                    'status' => false,
+                    'message' => $message
+                ]
+            ], 401);
         }
     }
 
-public function thanks()
-{
-    return view ('thanks');
-}
+    public function thanks()
+    {
+        return view('thanks');
+    }
+    public function notification()
+    {
+        try {
+            $notification = new Notification();
+
+            $notification = $notification->getTransaction();
+
+
+            //Atualizar pedido do usuário
+            $reference = base64_decode($notification->getReference());
+            $userOrder = UserOrder::whereReference($reference);
+            $userOrder->update([
+                'pagseguro_status' => $notification->getStatus()
+
+            ]);
+            if ($notification->getStatus() == 3) {
+            }
+
+            return response()->json([], 204);
+        } catch (\Throwable $e) {
+
+            $message = env('APP_DEBUG')? $e ->getMessage() :[];
+
+            return response()->json(['error'=> $message], 500);
+        }
+    }
 
     private function makePagSeguroSession()
     {

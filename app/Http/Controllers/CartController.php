@@ -21,13 +21,15 @@ class CartController extends Controller
         $productData = $request->get('product');
 
         $product = \App\Product::whereSlug($productData['slug']);
-        if(!$product->count()|| $productData ['amount'] ==0 ) 
-        return redirect()->route('product.single', ['slug'=>$productData['slug']]);
+
+        if(!$product->count()|| $productData ['amount'] <=0 ) 
+        return redirect()->route('home');
+        
 
        
 
         $product =  array_merge($productData, 
-        $product = $product->first(['name', 'prince', 'store_id'])->toArray());
+        $product = $product->first(['id','name', 'prince', 'store_id'])->toArray());
 
        
 
